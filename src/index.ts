@@ -46,7 +46,12 @@ type IGetListOfVideo = {
 };
 
 const formatStringToDateArray = (value: string) => {
-    return value.toLowerCase().replaceAll('-', ' ').split(' ').map((value) => +value);
+    return value.toLowerCase().replaceAll('-', ' ').split(' ').map((value) => {
+        if (value[0] === '0') {
+            return +value[1]
+        }
+        return +value;
+    });
 };
 
 const formatStringToQueryArray = (value?: string) => {
@@ -62,11 +67,10 @@ const getListOfVideo = ({publishedBefore, publishedAfter, query}: IGetListOfVide
         return youtube.search.list({
             channelId: 'UCcpCC6H9EqNZ6iM2gnuzwxQ',
             part: ['snippet'],
-            order: 'date',
             maxResults: 50,
             q: query ? queryParams : '',
-            publishedAfter: formatRFC3339(new Date(afterYear, afterMonth, afterDay, 0, 0, 0)),
-            publishedBefore: formatRFC3339(new Date(beforeYear, beforeMonth, beforeDay, 0, 0, 0)),
+            publishedAfter: formatRFC3339(new Date(afterYear, afterMonth - 1, afterDay)),
+            publishedBefore: formatRFC3339(new Date(beforeYear, beforeMonth - 1, beforeDay)),
         })
             .then((response) => {
                 console.log(response)
@@ -138,6 +142,8 @@ bot.on('callback_query', (msg) => {
 })
 
 bot.onText(/\/start/, (msg, match) => {
+    listOfLinks.length = 0;
+    listOfId.length = 0;
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, 'Привет! Выбери команды и введи нужные тебе периоды дат для видео.', {
         reply_markup: {
@@ -165,6 +171,6 @@ bot.onText(/Ключевые слова/, (msg) => {
     bot.sendMessage(chatId, 'Введи ключевые слова для поиска через пробел. Если их нет, то запрос будет по умолчанию');
 });
 
-app.listen(5000, () => {
+app.listen(5050, () => {
     console.log('Server running');
 });
